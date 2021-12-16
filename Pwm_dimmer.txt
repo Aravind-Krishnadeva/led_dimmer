@@ -1,0 +1,74 @@
+//******************************************************************************
+//  MSP430G2553 Demo:  Simple PWM LED dimmer using Timer
+//  Description: This implements a simple PWM LED dimmer which progressively dims
+//  inbuilt LED P1.6 (LED2) in MSP430 launchpad board, when button P1.3 is pressed
+//  During first press, LED2 is lit with full brightness. The second press dims
+//  LED by 50%, while third press dims by 75%, and last press dims by 90%.
+
+// By Aravind Krishnadeva
+// Built using CCS and tested on MSP430G2553 launchpad board
+// December 2021 
+
+
+
+#include<msp430g2553.h>
+#define LED    BIT6  // P1.6
+#define BUTTON BIT3
+void main()
+{
+ unsigned char state=0;
+ WDTCTL = WDTHOLD| WDTPW;
+ P1REN |= BUTTON; // Enable resistor pull up/down
+
+// Main loop
+ for(;;){
+
+ // STATE 0 - LED ON ( FULL BRIGHTNESS )
+ if(!(P1IN&BUTTON) && state==0)
+ {
+ __delay_cycles(200000);
+ P1DIR |= LED;
+ P1OUT |= LED;
+ state+=1;
+ }
+
+ // STATE 1 - LED ON ( 50 % BRIGHTNESS) - PWM
+ else if(!(P1IN&BUTTON) && state==1)
+  {
+  __delay_cycles(200000);
+  P1SEL |= LED;
+  TA0CCR0= 1000; // Set period
+  TA0CCR1=  500;   // Set duty cycle
+  TA0CCTL1=OUTMOD_7; // Enable set and reset
+  TA0CTL = TASSEL_2 + MC_1;
+  state+=1;
+ // _BIS_SR(LPM0_bits);
+  }
+
+// STATE 3 - LED ON ( 25 % BRIGHTNESS) - PWM 
+else if(!(P1IN&BUTTON) && state==2)
+  {
+    __delay_cycles(200000);
+    P1SEL |= LED;
+    TA0CCR0= 1000; // Set period
+    TA0CCR1=  250;   // Set duty cycle
+    TA0CCTL1=OUTMOD_7; // Enable set and reset
+    TA0CTL = TASSEL_2 + MC_1;
+    state+=1;
+ //  _BIS_SR(LPM0_bits);
+  }
+ 
+// STATE 3 - LED ON ( 10 % BRIGHTNESS) - PWM
+ else if(!(P1IN&BUTTON) && state==3)
+  {
+    __delay_cycles(200000);
+    P1SEL |= LED;
+    TA0CCR0= 1000; // Set period
+    TA0CCR1=  100;   // Set duty cycle
+    TA0CCTL1=OUTMOD_7; // Enable set and reset
+    TA0CTL = TASSEL_2 + MC_1;
+    state+=1;
+   // _BIS_SR(LPM0_bits);
+   }
+  }
+}
